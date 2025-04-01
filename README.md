@@ -25,7 +25,7 @@ Linux and macOS:
 git clone https://github.com/amiracle/cribl-asff-pack.git
 
 # Import the Pack into Cribl Stream
-# Navigate to Packs &gt; Import in the Cribl UI and upload the downloaded Pack file.
+# Navigate to Packs, Import in the Cribl UI and upload the downloaded Pack file.
 ```
 
 
@@ -34,13 +34,9 @@ git clone https://github.com/amiracle/cribl-asff-pack.git
 To use this Pack, follow these steps:
 
 1. **Import the Pack**: Go to `Packs &gt; Import` in the Cribl Stream UI and upload the Pack file.
-2. **Configure AWS Credentials**: Set up your AWS credentials in the Global Variables section of the Pack:
-    - `AWS_ACCESS_KEY_ID`
-    - `AWS_SECRET_ACCESS_KEY`
-    - `AWS_REGION`
-3. **Map Severity Levels**: Use the included lookup table (`severity_map.csv`) to adjust log severity levels to ASFF-compliant values.
-4. **Route Logs**: Set up a route in Cribl Stream to send access logs through the `CriblLog_to_ASFF` pipeline.
-5. **Send Findings**: Configure a CloudWatch Log destination tile in Cribl Stream to forward findings to AWS Security Hub.
+2. **Route Logs**: Set up a route in Cribl Stream to send access logs through the `CriblLog_to_ASFF` pipeline.
+3. **Send Findings**: Configure a CloudWatch Log destination tile in Cribl Stream to forward findings to AWS Security Hub.
+4. **Enable Cribl Logs**: Enable the Cribl Logs under the Cribl Internal Tile in the Sources.
 
 ## Release Notes
 
@@ -49,7 +45,6 @@ To use this Pack, follow these steps:
 In this release, we have added a number of great features:
 
 - Pre-built pipeline for converting Cribl access logs into ASFF format.
-- Lookup table for mapping log severity levels to ASFF-compliant values.
 - Integration with AWS Security Hub via CloudWatch Logs destination tile.
 
 We've goat you covered! 🐐
@@ -64,7 +59,7 @@ To contribute to the Pack, please do the following:
 
 ## Contact
 
-To contact us please email support@cribl.io.
+To contact us please email [`kamilo@cribl.io`](mailto:kamilo@cribl.io?Subject=Cribl%20Access%20Logs%20to%20ASFF%20Pack)
 
 ## License
 

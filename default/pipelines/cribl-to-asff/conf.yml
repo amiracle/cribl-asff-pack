@@ -1,0 +1,461 @@
+output: default
+streamtags:
+  - aws
+  - aws_security_hub
+  - asff
+groups:
+  GBdi0z:
+    name: Health Events
+    description: Drop health events in Cribl Access Logs
+    index: 5
+    disabled: false
+  T5mKI9:
+    name: Client Error 400 Codes
+    description: Error Status code configuration.
+    index: 7
+asyncFuncTimeout: 1000
+functions:
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Parse the Cribl Access Logs
+  - id: serde
+    filter: "true"
+    disabled: false
+    conf:
+      mode: extract
+      type: json
+      srcField: _raw
+      delimChar: \t
+      quoteChar: '"'
+      escapeChar: \\
+      nullValue: "-"
+      fields:
+        - deployment
+        - fleet
+        - instance
+        - message
+        - method
+        - region
+        - requestId
+        - _response_time
+        - saas_domain
+        - service
+        - source
+        - sourceType
+        - src
+        - status
+        - tenantId
+        - time
+        - url
+        - workspace
+    description: Parse the data from Cribl Access logs and extract the fields.
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Set your AWS Account ID. Collect the Cribl Cloud Account ID from the
+        Workspace -> Access section, under the Trust.
+  - id: eval
+    filter: "true"
+    disabled: null
+    conf:
+      add:
+        - disabled: false
+          name: accountId
+          value: "123456789012"
+    description: Set your AWS Account ID
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Drop Health Events from being sent
+  - id: drop
+    filter: status == '200'
+    disabled: false
+    conf: {}
+    description: Drop Health Heartbeat
+    final: true
+    groupId: GBdi0z
+  - id: drop
+    filter: message == 'local bundle cache stats'
+    disabled: false
+    conf: {}
+    groupId: GBdi0z
+    description: Drop buncle cache stats
+    final: true
+  - id: drop
+    filter: message == 'active metrics'
+    disabled: false
+    conf: {}
+    description: Drop publishing metrics info event
+    final: true
+    groupId: GBdi0z
+  - id: drop
+    filter: message == 'publishing metrics'
+    disabled: false
+    conf: {}
+    groupId: GBdi0z
+    description: Drop publishing metrics info event
+    final: true
+  - id: drop
+    filter: status == '420' && src == '127.0.0.1'
+    disabled: false
+    conf: {}
+    groupId: GBdi0z
+    description: Drop local health pings
+    final: true
+  - id: drop
+    filter: message == 'stats'
+    disabled: false
+    conf: {}
+    description: Remove stats messages from the Cribl Logs.
+    final: true
+    groupId: GBdi0z
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Evaluate and structure events with status code 401
+  - id: eval
+    filter: status == '400'
+    disabled: false
+    conf:
+      add:
+        - disabled: false
+          value: "'2018-10-08'"
+          name: SchemaVersion
+        - disabled: false
+          name: Id
+          value: "`${__e['requestId']}`"
+        - disabled: false
+          name: ProductArn
+          value: "'arn:aws:securityhub:us-east-1::product/custom/cribl-access-log-analyze\
+            r'"
+        - disabled: false
+          name: GeneratorId
+          value: "'cribl-access-log-analyzer'"
+        - disabled: false
+          name: AwsAccountId
+          value: "`${__e['accountId']}`"
+        - disabled: false
+          name: Types
+          value: "'Software and Configuration Checks/Vulnerabilities/CVE'"
+        - disabled: false
+          value: new Date().toISOString()
+          name: CreatedAt
+        - disabled: false
+          name: UpdatedAt
+          value: new Date().toISOString()
+        - disabled: false
+          name: Severity
+          value: "{Label: 'HIGH'}"
+        - disabled: false
+          name: Title
+          value: "`Bad Request from IP ${__e['src']}`"
+        - disabled: false
+          value: "`Access log entry: ${__e['_raw']}`"
+          name: Description
+        - disabled: false
+          name: Resources
+          value: "{ Type: 'SaaS', Id: __e['saas_domain']}"
+        - disabled: false
+          name: Network
+          value: "{ SourceIpV4: __e['src'] }"
+    final: true
+    description: Trigger High Severity due to 400, Bad Request.
+    groupId: T5mKI9
+  - id: eval
+    filter: status == '401'
+    disabled: false
+    conf:
+      add:
+        - disabled: false
+          value: "'2018-10-08'"
+          name: SchemaVersion
+        - disabled: false
+          name: Id
+          value: "`${__e['requestId']}`"
+        - disabled: false
+          name: ProductArn
+          value: "'arn:aws:securityhub:us-east-1::product/custom/cribl-access-log-analyze\
+            r'"
+        - disabled: false
+          name: GeneratorId
+          value: "'cribl-access-log-analyzer'"
+        - disabled: false
+          name: AwsAccountId
+          value: "`${__e['accountId']}`"
+        - disabled: false
+          name: Types
+          value: "'Software and Configuration Checks/Vulnerabilities/CVE'"
+        - disabled: false
+          value: new Date().toISOString()
+          name: CreatedAt
+        - disabled: false
+          name: UpdatedAt
+          value: new Date().toISOString()
+        - disabled: false
+          name: Severity
+          value: "{Label: 'HIGH'}"
+        - disabled: false
+          name: Title
+          value: "`Unauthorized Access from IP ${__e['src']}`"
+        - disabled: false
+          value: "`Access log entry: ${__e['_raw']}`"
+          name: Description
+        - disabled: false
+          name: Resources
+          value: "{ Type: 'SaaS', Id: __e['saas_domain']}"
+        - disabled: false
+          name: Network
+          value: "{ SourceIpV4: __e['src'] }"
+    final: true
+    description: Trigger High Severity due to 401, unauthorized access login attempt.
+    groupId: T5mKI9
+  - id: eval
+    filter: status == '403'
+    disabled: false
+    conf:
+      add:
+        - disabled: false
+          value: "'2018-10-08'"
+          name: SchemaVersion
+        - disabled: false
+          name: Id
+          value: "`${__e['requestId']}`"
+        - disabled: false
+          name: ProductArn
+          value: "'arn:aws:securityhub:us-east-1::product/custom/cribl-access-log-analyze\
+            r'"
+        - disabled: false
+          name: GeneratorId
+          value: "'cribl-access-log-analyzer'"
+        - disabled: false
+          name: AwsAccountId
+          value: "`${__e['accountId']}`"
+        - disabled: false
+          name: Types
+          value: "'Software and Configuration Checks/Vulnerabilities/CVE'"
+        - disabled: false
+          value: new Date().toISOString()
+          name: CreatedAt
+        - disabled: false
+          name: UpdatedAt
+          value: new Date().toISOString()
+        - disabled: false
+          name: Severity
+          value: "{Label: 'HIGH'}"
+        - disabled: false
+          name: Title
+          value: "`Forbidden Access from IP ${__e['src']}`"
+        - disabled: false
+          value: "`Access log entry: ${__e['_raw']}`"
+          name: Description
+        - disabled: false
+          name: Resources
+          value: "{ Type: 'SaaS', Id: __e['saas_domain']}"
+        - disabled: false
+          name: Network
+          value: "{ SourceIpV4: __e['src'] }"
+    final: true
+    description: Trigger High Severity due to 403, Forbidden.
+    groupId: T5mKI9
+  - id: eval
+    filter: status == '404'
+    disabled: false
+    conf:
+      add:
+        - disabled: false
+          value: "'2018-10-08'"
+          name: SchemaVersion
+        - disabled: false
+          name: Id
+          value: "`${__e['requestId']}`"
+        - disabled: false
+          name: ProductArn
+          value: "'arn:aws:securityhub:us-east-1::product/custom/cribl-access-log-analyze\
+            r'"
+        - disabled: false
+          name: GeneratorId
+          value: "'cribl-access-log-analyzer'"
+        - disabled: false
+          name: AwsAccountId
+          value: "`${__e['accountId']}`"
+        - disabled: false
+          name: Types
+          value: "'Software and Configuration Checks/Vulnerabilities/CVE'"
+        - disabled: false
+          value: new Date().toISOString()
+          name: CreatedAt
+        - disabled: false
+          name: UpdatedAt
+          value: new Date().toISOString()
+        - disabled: false
+          name: Severity
+          value: "{Label: 'HIGH'}"
+        - disabled: false
+          name: Title
+          value: "`Not Found from IP ${__e['src']}`"
+        - disabled: false
+          value: "`Access log entry: ${__e['_raw']}`"
+          name: Description
+        - disabled: false
+          name: Resources
+          value: "{ Type: 'SaaS', Id: __e['saas_domain']}"
+        - disabled: false
+          name: Network
+          value: "{ SourceIpV4: __e['src'] }"
+    final: true
+    description: Trigger High Severity due to 404, Not Found.
+    groupId: T5mKI9
+  - id: eval
+    filter: status == '405'
+    disabled: false
+    conf:
+      add:
+        - disabled: false
+          value: "'2018-10-08'"
+          name: SchemaVersion
+        - disabled: false
+          name: Id
+          value: "`${__e['requestId']}`"
+        - disabled: false
+          name: ProductArn
+          value: "'arn:aws:securityhub:us-east-1::product/custom/cribl-access-log-analyze\
+            r'"
+        - disabled: false
+          name: GeneratorId
+          value: "'cribl-access-log-analyzer'"
+        - disabled: false
+          name: AwsAccountId
+          value: "`${__e['accountId']}`"
+        - disabled: false
+          name: Types
+          value: "'Software and Configuration Checks/Vulnerabilities/CVE'"
+        - disabled: false
+          value: new Date().toISOString()
+          name: CreatedAt
+        - disabled: false
+          name: UpdatedAt
+          value: new Date().toISOString()
+        - disabled: false
+          name: Severity
+          value: "{Label: 'HIGH'}"
+        - disabled: false
+          name: Title
+          value: "`Method Not Allowed from IP ${__e['src']}`"
+        - disabled: false
+          value: "`Access log entry: ${__e['_raw']}`"
+          name: Description
+        - disabled: false
+          name: Resources
+          value: "{ Type: 'SaaS', Id: __e['saas_domain']}"
+        - disabled: false
+          name: Network
+          value: "{ SourceIpV4: __e['src'] }"
+    final: true
+    description: Trigger High Severity due to 405, Method Not Allowed.
+    groupId: T5mKI9
+  - id: eval
+    filter: status == '415'
+    disabled: false
+    conf:
+      add:
+        - disabled: false
+          value: "'2018-10-08'"
+          name: SchemaVersion
+        - disabled: false
+          name: Id
+          value: "`${__e['requestId']}`"
+        - disabled: false
+          name: ProductArn
+          value: "'arn:aws:securityhub:us-east-1::product/custom/cribl-access-log-analyze\
+            r'"
+        - disabled: false
+          name: GeneratorId
+          value: "'cribl-access-log-analyzer'"
+        - disabled: false
+          name: AwsAccountId
+          value: "`${__e['accountId']}`"
+        - disabled: false
+          name: Types
+          value: "'Software and Configuration Checks/Vulnerabilities/CVE'"
+        - disabled: false
+          value: new Date().toISOString()
+          name: CreatedAt
+        - disabled: false
+          name: UpdatedAt
+          value: new Date().toISOString()
+        - disabled: false
+          name: Severity
+          value: "{Label: 'HIGH'}"
+        - disabled: false
+          name: Title
+          value: "`Unsupported Media Type from IP ${__e['src']}`"
+        - disabled: false
+          value: "`Access log entry: ${__e['_raw']}`"
+          name: Description
+        - disabled: false
+          name: Resources
+          value: "{ Type: 'SaaS', Id: __e['saas_domain']}"
+        - disabled: false
+          name: Network
+          value: "{ SourceIpV4: __e['src'] }"
+    final: true
+    description: Trigger High Severity due to 415, Unsupported Media Type.
+    groupId: T5mKI9
+  - id: comment
+    filter: "true"
+    disabled: null
+    conf:
+      comment: Evaluate and structure all other events
+  - id: eval
+    filter: "true"
+    disabled: false
+    conf:
+      add:
+        - disabled: false
+          value: "'2018-10-08'"
+          name: SchemaVersion
+        - disabled: false
+          name: Id
+          value: "`${__e['requestId']}`"
+        - disabled: false
+          name: ProductArn
+          value: "'arn:aws:securityhub:us-east-1::product/custom/cribl-access-log-analyze\
+            r'"
+        - disabled: false
+          name: GeneratorId
+          value: "'cribl-access-log-analyzer'"
+        - disabled: false
+          name: AwsAccountId
+          value: "`${__e['accountId']}`"
+        - disabled: false
+          name: Types
+          value: "'Software and Configuration Checks/Vulnerabilities/CVE'"
+        - disabled: false
+          value: new Date().toISOString()
+          name: CreatedAt
+        - disabled: false
+          name: UpdatedAt
+          value: new Date().toISOString()
+        - disabled: false
+          name: Severity
+          value: "`Label: ${__e['Severity']}`"
+        - disabled: false
+          name: Title
+          value: "`Access from IP ${__e['src']}`"
+        - disabled: false
+          value: "`Access log entry: ${__e['_raw']}`"
+          name: Description
+        - disabled: false
+          name: Resources
+          value: "{ Type: 'SaaS', Id: __e['saas_domain']}"
+        - disabled: false
+          name: Network
+          value: "{ SourceIpV4: __e['src'] }"
+    description: "Route all other status codes as Low severity "
+    final: true
+description: Convert Cribl logs into ASFF (AWS Security Findings Format)

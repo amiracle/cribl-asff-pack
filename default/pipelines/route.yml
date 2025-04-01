@@ -1,0 +1,26 @@
+id: default
+groups: {}
+comments: []
+routes:
+  - id: 4iWReV
+    name: Route to CloudWatch Logs
+    final: true
+    disabled: false
+    pipeline: cribl-to-asff
+    description: Route Events to CloudWatch Logs
+    enableOutputExpression: false
+    outputExpression: null
+    filter: __inputId=='cribl:CriblLogs'
+    clones: []
+    output: default
+  - id: default
+    name: default
+    final: true
+    disabled: false
+    pipeline: main
+    description: ""
+    enableOutputExpression: false
+    outputExpression: null
+    filter: "true"
+    clones: []
+    output: default

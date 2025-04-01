@@ -1,0 +1,8 @@
+WxWTHn:
+  sampleName: cribl-access-sample.log
+  description: Cribl Access Sample Log
+  tags: cribl,access,logs
+  ttl: 0
+  created: 1730794096466
+  size: 255641
+  numEvents: 100
